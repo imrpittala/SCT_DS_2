@@ -347,12 +347,105 @@ def export_eda_summary(df: pd.DataFrame, output_json_path: str):
     logger.info(f"EDA Summary metrics exported to: {output_json_path}")
 
 
+def export_survival_factors_eda(df: pd.DataFrame, output_image_path: str):
+    """
+    Exports clean, high-DPI (300 DPI) multi-panel survival factor visualization:
+    (a) Survival rate by passenger class (Pclass)
+    (b) Survival rate by gender (Sex) with class breakdown
+    (c) Correlation heatmap of numeric and engineered features
+    """
+    logger.info("Exporting dedicated survival_factors_eda.png...")
+    set_visual_style()
+
+    fig = plt.figure(figsize=(17, 10))
+    gs = fig.add_gridspec(2, 2, height_ratios=[1, 1.25], hspace=0.35, wspace=0.28)
+
+    fig.suptitle(
+        "Titanic Survival Dynamics: Socioeconomic Class, Gender Disparity & Feature Correlations",
+        fontsize=16,
+        fontweight="bold",
+        y=0.98
+    )
+
+    # Panel 1: Survival by Passenger Class (Pclass)
+    ax1 = fig.add_subplot(gs[0, 0])
+    pclass_surv = df.groupby("Pclass")["Survived"].mean().reset_index()
+    sns.barplot(
+        data=pclass_surv,
+        x="Pclass",
+        y="Survived",
+        palette=["#2b5c8f", "#4f81bd", "#95b3d7"],
+        ax=ax1,
+        edgecolor="black"
+    )
+    for i, row in pclass_surv.iterrows():
+        ax1.text(
+            i, row["Survived"] + 0.02,
+            f"{row['Survived'] * 100:.1f}%",
+            ha="center", fontweight="bold", fontsize=11
+        )
+    ax1.set_ylim(0, 1.0)
+    ax1.set_title("(a) Survival Rate by Passenger Class (Pclass)", fontweight="bold")
+    ax1.set_xlabel("Passenger Ticket Class (1 = Upper, 2 = Middle, 3 = Lower)")
+    ax1.set_ylabel("Survival Rate")
+
+    # Panel 2: Survival by Gender (Sex)
+    ax2 = fig.add_subplot(gs[0, 1])
+    gender_surv = df.groupby(["Sex", "Pclass"])["Survived"].mean().reset_index()
+    sns.barplot(
+        data=df,
+        x="Sex",
+        y="Survived",
+        hue="Pclass",
+        palette="Blues_r",
+        ax=ax2,
+        edgecolor="black",
+        errorbar=None
+    )
+    for p in ax2.patches:
+        h = p.get_height()
+        if h > 0:
+            ax2.annotate(
+                f"{h * 100:.1f}%",
+                (p.get_x() + p.get_width() / 2., h / 2.),
+                ha="center", va="center", color="white", fontweight="bold", fontsize=9.5
+            )
+    ax2.set_ylim(0, 1.05)
+    ax2.set_title("(b) Survival Rate by Gender & Class Stratum", fontweight="bold")
+    ax2.set_xlabel("Gender")
+    ax2.set_ylabel("Survival Rate")
+    ax2.legend(title="Class", frameon=True)
+
+    # Panel 3: Correlation Heatmap of Numeric Features
+    ax3 = fig.add_subplot(gs[1, :])
+    num_cols = ["Survived", "Pclass", "Age", "SibSp", "Parch", "Fare", "FamilySize", "IsAlone", "Fare_Per_Person"]
+    corr_mat = df[num_cols].corr()
+    sns.heatmap(
+        corr_mat,
+        annot=True,
+        cmap="coolwarm",
+        fmt=".2f",
+        vmin=-1,
+        vmax=1,
+        ax=ax3,
+        linewidths=0.8,
+        cbar_kws={"label": "Pearson Correlation"}
+    )
+    ax3.set_title("(c) Correlation Heatmap: Demographic, Socioeconomic & Engineered Variables", fontweight="bold")
+
+    os.makedirs(os.path.dirname(output_image_path), exist_ok=True)
+    plt.savefig(output_image_path, dpi=300, bbox_inches="tight")
+    plt.close()
+    logger.info(f"Survival factors EDA figure exported to: {output_image_path}")
+
+
 def main():
     """Main execution function for Titanic EDA and Cleaning pipeline."""
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     raw_path = os.path.join(base_dir, "data", "dataset.csv")
     cleaned_path = os.path.join(base_dir, "data", "cleaned_dataset.csv")
     report_img_path = os.path.join(base_dir, "reports", "visual_insights.png")
+    survival_factors_path = os.path.join(base_dir, "reports", "survival_factors_eda.png")
     report_json_path = os.path.join(base_dir, "reports", "eda_summary.json")
 
     logger.info("Starting Titanic EDA & Data Cleaning Pipeline...")
@@ -369,6 +462,7 @@ def main():
 
     # Generate visual report and metrics
     generate_survival_visuals(df_final, report_img_path)
+    export_survival_factors_eda(df_final, survival_factors_path)
     export_eda_summary(df_final, report_json_path)
     logger.info("SCT_DS_2 pipeline execution completed successfully.")
 

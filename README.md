@@ -71,8 +71,11 @@ SCT_DS_2/
 ---
 
 ## 🖼️ Visual Insights Preview
-The automated pipeline executes statistical routines and exports a publication-grade 6-panel grid to `reports/visual_insights.png`:
 
+### Core Survival Dynamics & Correlation Matrix
+![Survival Factors EDA](reports/survival_factors_eda.png)
+
+### Comprehensive Survival Analysis Grid
 ![Titanic Survival Dashboard](reports/visual_insights.png)
 
 ---
