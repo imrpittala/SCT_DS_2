@@ -1,0 +1,26 @@
+{
+    "total_passengers": 891,
+    "overall_survival_rate_pct": 38.38,
+    "survival_by_gender": {
+        "female_survival_pct": 74.2,
+        "male_survival_pct": 18.89
+    },
+    "survival_by_class": {
+        "1": 62.96,
+        "2": 47.28,
+        "3": 24.24
+    },
+    "survival_by_title": {
+        "Master": 57.5,
+        "Miss": 70.27,
+        "Mr": 15.67,
+        "Mrs": 79.37,
+        "Officer": 27.78,
+        "Rare": 100.0,
+        "Royalty": 50.0
+    },
+    "solo_vs_family_survival": {
+        "is_alone": 30.35,
+        "with_family": 50.56
+    }
+}
